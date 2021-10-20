@@ -38,7 +38,7 @@ water:		.res	1
 flower: 	.res	1
 sonicframe:	.res	1
 dirty:		.res	1	; "dirty" elements for VBLANK to handle
-FOO:		.res	1
+;FOO:		.res	1
 
 ; flag bits of the dirty register
 DIRTY_SCROLL	=	1
@@ -257,10 +257,6 @@ playPSG:
 			bra nextnote
 			
 loopsong:
-;			; check if loop_ptr = 000
-;			lda loop_pointer
-;			ora	loop_pointer+1
-;			ora loop_pointer+2
 			; check if loop_banks = $FF
 			lda loop_pointer + SONGPTR::bank
 			cmp #$FF
@@ -273,8 +269,6 @@ loopsong:
 			adc	#$a0
 			sta	data + SONGPTR::addr+1
 			lda loop_pointer + SONGPTR::bank
-;			clc
-;			adc	#databank
 			sta	data + SONGPTR::bank
 			sta RAM_BANK
 			jmp	nextnote
@@ -399,16 +393,8 @@ old_move_sonic:
 			VERA_SET_ADDR	tile_row,1
 			lda tile_column
 			and	#$3f	; limit column number to 0..63
-; testing:
-			sta FOO
-; -----
 			asl
 			sta VERA_addr_low
-; testing:
-;			stz VERA_data0
-;			stz VERA_data0
-;			sta VERA_addr_low
-; --------
 			lda VERA_data0			; get tile ID at location
 			tax						; stash it in X
 			lda VERA_data0			; get tile ATTR+ID_Hi at location
@@ -727,17 +713,21 @@ mainloop:
 			sta dirty
 			bra mainloop
 			
+sonic_frames:
+		.byte $10, $08, $20, $08, $30, $08, $40, $08
+		.byte $00, $08, $04, $08, $00, $08, $04, $08
+
+sonic_spriteregs:
+		;sonic's body
+		.byte $10, $08, <sonic_x, >sonic_x, <(sonic_y+8), >(sonic_y+8), $0c, $a0
+
+		;sonic's ears
+		.byte $00, $08, <sonic_x, >sonic_x, <sonic_y, >sonic_y, $0c, $20
+		
 flowertable:
 			.byte <flower1, <flower2, >flower1, >flower2
 
-sonic_spriteregs:
-;		.byte $10, $08, $64, $00, $a0, $00, $0c, $a0 ; sonic's body
-;		.byte $00, $08, $64, $00, $98, $00, $0c, $20 ; sonic's ears
-		.byte $10, $08, <sonic_x, >sonic_x, <(sonic_y+8), >(sonic_y+8), $0c, $a0 ; sonic's body
-		.byte $00, $08, <sonic_x, >sonic_x, <sonic_y, >sonic_y, $0c, $20 ; sonic's ears
-		
-
-flowerframes:
+flowerframes:	; the startup routine loads FLOWER.BIN into this region
 flower1:	.res 512
 flower2:	.res 512
 
@@ -792,11 +782,6 @@ palette:
 		.word $000, $000, $fff, $eac, $97d, $18c, $6ad, $9ef
 		.word $5cb, $3c8, $ac5, $fc5, $fb5, $f85, $f64, $f54
 palette_end:
-
-
-sonic_frames:
-		.byte $10, $08, $20, $08, $30, $08, $40, $08
-		.byte $00, $08, $04, $08, $00, $08, $04, $08
 
 RASTER0 = 224
 RASTER1 = 306

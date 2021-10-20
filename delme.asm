@@ -1,5 +1,5 @@
-;.include "x16.inc" ; include this one for R38
-.include "x16r39.inc" ; x16.inc by SlithyMatt
+.include "x16.inc" ; include this one for R38
+;.include "x16r39.inc" ; x16.inc by SlithyMatt
 
 .segment "ZEROPAGE"
 

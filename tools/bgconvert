@@ -24,17 +24,11 @@ function writebin($ofile, $bg)
 	foreach ($bg as $foo) {
 		fwrite($of,pack('v',$foo));
 	}
-	//fwrite($of,pack('n*',...$bg));
 	fclose($of);
 }
 
 function getbg($filename)
 {
-
-	//my $filesize;
-	//my $f;
-	//my $binary;
-	//my $bg;
 
 	$filesize=filesize($filename);
 	$f = fopen($filename, "r");
