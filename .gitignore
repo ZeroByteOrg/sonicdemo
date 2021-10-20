@@ -3,6 +3,7 @@ history
 res
 emustates
 imgui.ini
+build/*
 sonicdemo*.zip
 *.bak
 *.sym
