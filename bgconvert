@@ -1,0 +1,54 @@
+#!/usr/bin/php
+<?php
+
+$p = array();
+
+if (isset($argv[1]))
+	define("INFILENAME", $argv[1]);
+else
+	define("INFILENAME", 'res/BG.bin');
+
+if (isset($argv[2]))
+	define("OUTFILENAME", $argv[2]);
+else
+	define("OUTFILENAME", 'BG.BIN');
+
+writebin(OUTFILENAME,getbg(INFILENAME));
+
+exit (0);
+
+function writebin($ofile, $bg)
+{
+	$of = fopen($ofile, "w+b");
+	fwrite ($of,pack('n',0));
+	foreach ($bg as $foo) {
+		fwrite($of,pack('v',$foo));
+	}
+	//fwrite($of,pack('n*',...$bg));
+	fclose($of);
+}
+
+function getbg($filename)
+{
+
+	//my $filesize;
+	//my $f;
+	//my $binary;
+	//my $bg;
+
+	$filesize=filesize($filename);
+	$f = fopen($filename, "r");
+	$binary=fread($f,$filesize);
+	fclose($f);
+
+	$bg=unpack(sprintf('n%d',intdiv($filesize,2)),$binary);
+	printf("read in %d values.\n",sizeof($bg));
+	foreach($bg as $key => $val) {
+		$attr = $val >> 9; // shift so H bit is now in bit 2 of attr
+		// attr now = 0PCC VHNN (P=priority, C=color palette, V/H flip, N=tile number)
+		$attr &= 0x3C;  // mask off the priority and tile ID bits
+		$bg[$key] = ($val & 0x03ff) | ($attr << 8);
+	}
+	return $bg;
+}
+?>
