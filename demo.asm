@@ -540,7 +540,7 @@ flowertable:	; pointers to the 2 tile animation frames for the spinning flower
 .ifdef WEBEMU
 		songname:		.byte "bgm.bin"
 .else
-	.if VERSION = 38
+	.if X16_VERSION = 38
 		songname:		.byte "bgm38.zsm"
 	.else
 		songname:		.byte "bgm.zsm"
