@@ -76,10 +76,10 @@ FLOWER.BIN: assets/flowerframes.png
 	$(IMG2TILESET) -b 4 -s 8x8 $< $@
 
 BGM.ZSM: assets/greenhillzone.vgm $(VGM2ZSM)
-	$(VGM2ZSM) $< $@
+	$(VGM2ZSM) -f $< $@
 
 BGM38.ZSM: assets/greenhillzone.vgm $(VGM2ZSM)
-	$(VGM2ZSM) -4 $< $@
+	$(VGM2ZSM) -f -4 $< $@
 
 BGM.BIN: BGM38.ZSM
 	cp $< $@
@@ -112,7 +112,7 @@ runbox: $(TARGETS)
 zip: $(PKG)
 
 .PHONY: demo
-demp: $(TARGETS) assets
+demo: $(TARGETS) assets
 
 .PHONY: assets
 assets: $(ASSETS) $(BINHEADER)
