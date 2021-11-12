@@ -112,7 +112,7 @@ runbox: $(TARGETS)
 zip: $(PKG)
 
 .PHONY: demo
-demp: $(TARGETS) assets
+demo: $(TARGETS) assets
 
 .PHONY: assets
 assets: $(ASSETS) $(BINHEADER)

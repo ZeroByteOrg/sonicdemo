@@ -4,6 +4,13 @@ bin2c.py: (unused)
 img2tileset.py:
 	Used to generate the SPRITES.BIN and TILESET.BIN files
 	
+vgm2zsm:
+	Converts VGM music into ZSM format used by the demo
+
+bgconvert:
+	Tweaks the raw Sega Megadrive tilemap data into VERA tilemap format.
+	(Swaps from big to little endian, and rearranges the attribute bits)
+
 export.lua:
 json.lua:
 tilemap-exporter.lua:
