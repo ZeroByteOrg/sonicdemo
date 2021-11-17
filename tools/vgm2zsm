@@ -140,28 +140,47 @@ function snfnum($ayfnum) {
 function getcode_kf ($freq) {
 	global $note;
 	
+	// handle $freq < min or >= max first.
+	if ($freq < freq(0,0))
+		return(0);
+	if ($freq >= freq(7,0x0e))
+		return(0x7e);
+
+	// find highest KC value that produces a frequency below the requested freq.
 	$newoct = 0;
 	$newkc = 0;
-	$oct = 0;
-	$kc = 0;
 	do {
 		$oct = $newoct;
 		$kc = $newkc;
-		$f = freq($oct,$kc);  // set $f to be the freq of this code.
+		$f = freq($oct,$kc);  // set $f to be the freq of current code.
+		// if exact match, then just return the KC with no KF.
 		if ($f == $freq) return(($oct << 4) | ($kc & 0x0f));
 		$newkc++;
-		if ($newkc % 4 == 3) $newkc++;
+		if ($newkc % 4 == 3) $newkc++; // skip invalid KC values 0x3, 0x7, 0xb, and 0xf
+		// check whether new octave or not
 		if ($newkc > 0x0f) {
 			if ($newoct == 7) return(0x7e); // $freq > OPM's max freq. Just return max.
 			$newoct++;
-			$newkc -= 0x0f;
+			$newkc -= 0x10;
 		}
 		$fnext = freq($newoct, $newkc);
 	} while ($fnext <= $freq);
 	// $oct,$kc are now the highest code that is < target frequency.
 	// $f is this KC's frequency, and: $f < $freq < $fnext
-	$HZpercent = ($fnext - $f) / 64.0;  // Hz value of one cent in this range.
-	$kf = floor(($freq-$f)/$HZpercent);
+	$centDF = ($fnext - $f) / 64.0;  // Hz value of one cent in this range.
+	$kf = round(($freq-$f)/$centDF, 0, PHP_ROUND_HALF_UP);
+	if ($kf == 64) {
+		// if the frquency is closer to the next semitone (KF rounded up to 64)
+		// then adjust KC up by one semitone and set KF to zero
+		$kf = 0;
+		$kc++;
+		if ($kc % 4 == 3) $kc++;
+		if ($kc > 0x0f) {
+			$kc -= 0x10;
+			$oct++;
+			// no need to check oct > 7 because we eliminated >= max freq at start of function
+		}
+	}
 	return ( ($kf << 10) | ($oct << 4) | $kc ); // KF << 10 because KF reg is 6 msb of that reg.
 };
 
