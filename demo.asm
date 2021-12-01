@@ -24,15 +24,11 @@ num_raster_irqs = 16
 
 .segment "ZEROPAGE"
 
-;data:		.tag	SONGPTR
-;delay:		.res	1
-;cmd:		.res	1
 frame:		.res	1
 water:		.res	1
 flower: 	.res	1
 sonicframe:	.res	1
 dirty:		.res	1	; "dirty" elements for VBLANK to handle
-;FOO:		.res	1
 
 ; flag bits of the dirty register
 DIRTY_SCROLL	=	1
@@ -144,10 +140,10 @@ rotate_palette:
 			tax
 nextcolor:					; transfer 8 bytes into the water animation palette
 			inx
-			inx
+			inx				; color index += 2
 			cpx #8
 			bcc :+
-			ldx #0
+			ldx #0			; wrap index to 0 when index >= 8 (4 colors)
 :			lda watercolors,x
 			sta VERA_data0
 			lda watercolors+1,x
@@ -159,22 +155,22 @@ nextcolor:					; transfer 8 bytes into the water animation palette
 rotate_flower:
 			VERA_SET_ADDR	flowervram, 1
 			lda flower
-			eor #1
+			eor #1					; toggle flower frame 1,0,1,0,1,0,...
 			sta flower
 			tax
-			lda flowertable,x
+			lda flowertable,x		; get pointer to current frame's pixel data
 			sta ZP_PTR_1
 			lda flowertable+2,x
 			sta ZP_PTR_1+1
-			ldx #2
+			ldx #2					; prepare to copy 2 pages of memory into VRAM
 			ldy #0
 :			lda (ZP_PTR_1),y
 			sta VERA_data0
 			iny
-			bne :-
+			bne :-					; next byte
 			dex
 			beq :+
-			inc ZP_PTR_1+1	; next page
+			inc ZP_PTR_1+1			; next page
 			bra :-
 :			rts
 
@@ -316,7 +312,12 @@ start:
 			; actually stops sending a video signal whatsoever and the
 			; monitor will go into sleep mode.
 			
-			;  ==== load zsm music file into memory ====
+.ifndef NOSOUND
+			; load zsm music file into banked memory
+			;
+			; note:	this breaks when using the Kernal but works for emu
+			;		hyperload. May need to replace with custom loader
+			;		if Kernal fix seems not to be forthcoming...
 
 			; set BANKRAM to the first bank where song should load
 			lda	#databank
@@ -342,7 +343,7 @@ start:
 			ldx	#0
 			ldy	#$a0
 			jsr	startmusic
-
+.endif
 			;load the background tilemap data
 			lda #bgname_end-bgname
 			ldx #<bgname
@@ -403,7 +404,7 @@ start:
 			ldy #0
 			jsr LOAD
 
-			;load the animated flower tiles
+			;load the animated flower tiles into main memory
 			lda #flowername_end-flowername
 			ldx #<flowername
 			ldy #>flowername
@@ -477,13 +478,8 @@ start:
 ;			lda #$51				; Sprite,  ,L0 enabled, outmode = VGA
 			sta VERA_dc_video
 
-			cli
-			
-;			jsr init_player
-;			jsr startmusic
-
-
-			jmp mainloop
+			cli						; init complete. Enable IRQ and
+			jmp mainloop			; go to the main loop
 			
 .segment "CODE"
 			
@@ -492,9 +488,6 @@ mainloop:
 			bmi	mainloop
 			inc frame
 			jsr do_scroll
-;			inc	bgscroll
-;			bne	:+
-;			inc bgscroll+1
 
 			lda frame
 			and #$0f
@@ -530,8 +523,8 @@ sonic_spriteregs:	; shadow registers for Sonic sprites
 .segment	"RODATA"
 
 sonic_frames:	; VRAM locations for frames of Sonic's animation (SPREG format)
-		.byte $10, $08, $20, $08, $30, $08, $40, $08
-		.byte $00, $08, $04, $08, $00, $08, $04, $08
+		.byte $10, $08, $20, $08, $30, $08, $40, $08	; body animation cycle
+		.byte $00, $08, $04, $08, $00, $08, $04, $08	; ears animation cycle
 
 		
 flowertable:	; pointers to the 2 tile animation frames for the spinning flower
