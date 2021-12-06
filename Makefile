@@ -2,8 +2,10 @@ IMG2TILESET	= tools/img2tileset.py
 VGM2ZSM		= tools/vgm2zsm
 BGCONVERT	= tools/bgconvert
 
-LIBDIR		= ../zsound/lib
-INCDIR		= ../zsound/inc
+#LIBDIR		= ../zsound/lib
+#INCDIR		= ../zsound/inc
+LIBDIR		= .
+INCDIR		= .
 
 # My environment has a front-end shell script "x16" to run the
 # official emulator which adds a -v option to easily switch revisions.

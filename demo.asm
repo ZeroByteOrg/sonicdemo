@@ -10,7 +10,7 @@
 .endstruct
 
 
-databank	= 2
+;databank	= 2
 ;playerbank	= 1
 waterpalette	= $1FA50
 watercolors 	= palette + ($28 << 1)
@@ -21,6 +21,8 @@ sonic_speed		= $64
 sonic_x			= 100
 sonic_y			= 152
 num_raster_irqs = 16
+music_addr		= $a000
+music_bank		= 2
 
 .segment "ZEROPAGE"
 
@@ -306,11 +308,8 @@ start:
 			sei
 			
 			; disable video while the data loads
-			stz VERA_dc_video
-			; change the above tactic to something more akin to just
-			; disabling the tile layers and sprites, as disabling VGA
-			; actually stops sending a video signal whatsoever and the
-			; monitor will go into sleep mode.
+			lda #1
+			sta VERA_dc_video
 			
 .ifndef NOSOUND
 			; load zsm music file into banked memory
@@ -320,7 +319,7 @@ start:
 			;		if Kernal fix seems not to be forthcoming...
 
 			; set BANKRAM to the first bank where song should load
-			lda	#databank
+			lda	#music_bank
 			sta	RAM_BANK
 			lda #songname_end - songname
 			ldx #<songname
@@ -330,18 +329,18 @@ start:
 			ldx	#8	; device 8
 			ldy #0	; no command
 			jsr	SETLFS
-			; load song to $A000
+			; load song into banked RAM
 			lda	#0		; 0=load, 1=verify, 2|3 = VLOAD to VRAM bank0/bank1
-			ldx	#0
-			ldy #$a0
+			ldx	#<music_addr
+			ldy #>music_addr
 			jsr LOAD
 			
 			; initialize zsound
 			jsr	init_player
 			; set zsound to play the Green Hill Zone music
-			lda	#databank
-			ldx	#0
-			ldy	#$a0
+			lda	#music_bank
+			ldx	#<music_addr
+			ldy	#>music_addr
 			jsr	startmusic
 .endif
 			;load the background tilemap data
