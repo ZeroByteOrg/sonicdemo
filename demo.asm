@@ -1,5 +1,5 @@
 .include "x16.inc" ; x16.inc by SlithyMatt
-.include "zsound.inc"
+.include "zsmplayer.inc"
 
 .struct SPRITEREG
 	addr		.word	1
