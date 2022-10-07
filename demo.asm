@@ -94,7 +94,7 @@ lineirq:
 			plx
 			pla
 			rti
-			
+
 vblank:
 			lda	dirty
 			bpl	do_kernal
@@ -120,11 +120,11 @@ VBLANK_dopalette:
 VBLANK_dotiles:
 			lsr
 			bcc VBLANK_dosprites
-VBLANK_dosprites:		
+VBLANK_dosprites:
 			lsr
 			bcc VBLANK_done
 			;jsr draw_sonic
-			
+
 VBLANK_done:
 			stz dirty
 			jmp	(kernal_irq)
@@ -153,7 +153,7 @@ nextcolor:					; transfer 8 bytes into the water animation palette
 			dey
 			bpl nextcolor
 			rts
-			
+
 rotate_flower:
 			VERA_SET_ADDR	flowervram, 1
 			lda flower
@@ -193,7 +193,7 @@ animate_sonic:
 			sta sonic_spriteregs + 9 + SPRITEREG::addr
 			lda	dirty
 			ora	#DIRTY_SPRITE
-			sta dirty	
+			sta dirty
 			rts
 
 .segment "RODATA"
@@ -226,7 +226,7 @@ draw_sonic:
 			dey
 			bpl :-
 			rts
-			
+
 do_scroll:
 			stz ZP_PTR_1
 			lda	speed
@@ -262,7 +262,7 @@ do_scroll:
 			ror bgscroll
 			ror bgscroll_frac
 			sta bgscroll+1
-			
+
 			; now create the raster line scroll table - inc bgscroll by RASTER_AMT each line
 			ldx #0
 			delta = r0 ; rename it to something sensible for this algo. for readability
@@ -296,7 +296,7 @@ do_scroll:
 			inx
 			cpx #num_raster_irqs
 			bcc :-
-			
+
 			lda dirty
 			ora #DIRTY_SCROLL
 			sta dirty
@@ -306,11 +306,12 @@ do_scroll:
 
 start:
 			sei
-			
+
 			; disable video while the data loads
-			lda #1
+			lda #$0f
+			and VERA_dc_video
 			sta VERA_dc_video
-			
+
 .ifndef NOSOUND
 			; load zsm music file into banked memory
 			;
@@ -334,7 +335,7 @@ start:
 			ldx	#<music_addr
 			ldy #>music_addr
 			jsr LOAD
-			
+
 			; initialize zsound
 			jsr	init_player
 			; set zsound to play the Green Hill Zone music
@@ -372,7 +373,7 @@ start:
 			ldx	#0
 			ldy #0
 			jsr LOAD
-			
+
 			;load the tileset
 			lda #tilesetname_end-tilesetname
 			ldx #<tilesetname
@@ -433,10 +434,10 @@ start:
 			sta	VERA_L0_config,y
 			dey
 			bpl :-
-			
+
 			; configure the Sonic sprites
 			jsr draw_sonic
-			
+
 			; save the current IRQ vector so player can call it when done
 			lda IRQVec
 			sta kernal_irq
@@ -473,15 +474,16 @@ start:
 			lda #$40				; set resolution = 320x240
 			sta VERA_dc_hscale
 			sta VERA_dc_vscale
-			lda #$71				; Sprite,L1,L0 enabled, outmode = VGA
-;			lda #$51				; Sprite,  ,L0 enabled, outmode = VGA
+			lda VERA_dc_video
+			ora #$70				; Sprite,L1,L0 enabled, outmode = previously-set
+;			lda #$51				; Sprite,  ,L0 enabled, outmode = previously-set
 			sta VERA_dc_video
 
 			cli						; init complete. Enable IRQ and
 			jmp mainloop			; go to the main loop
-			
+
 .segment "CODE"
-			
+
 mainloop:
 			bit	dirty
 			bmi	mainloop
@@ -506,7 +508,7 @@ mainloop:
 			ora #$80
 			sta dirty
 			bra mainloop
-			
+
 flowerframes:	; the startup routine loads FLOWER.BIN into this region
 flower1:	.res 512
 flower2:	.res 512
@@ -518,14 +520,14 @@ sonic_spriteregs:	; shadow registers for Sonic sprites
 		;sonic's ears
 		.byte $00, $08, <sonic_x, >sonic_x, <sonic_y, >sonic_y, $0c, $20
 
-			
+
 .segment	"RODATA"
 
 sonic_frames:	; VRAM locations for frames of Sonic's animation (SPREG format)
 		.byte $10, $08, $20, $08, $30, $08, $40, $08	; body animation cycle
 		.byte $00, $08, $04, $08, $00, $08, $04, $08	; ears animation cycle
 
-		
+
 flowertable:	; pointers to the 2 tile animation frames for the spinning flower
 			.byte <flower1, <flower2, >flower1, >flower2
 
@@ -558,29 +560,29 @@ spritesname_end:
 ; VERA register configurations
 layer0_cfg:
 		.byte $12, $24, $40, $00, $00, $00, $00
-		
+
 layer1_cfg:
 		.byte $12, $00, $40, $00, $00, $00, $00
 
 palette:
 		.word $09f, $000, $229, $44b, $66d, $99f, $fff, $bbb
 		.word $999, $444, $fb9, $b64, $f00, $900, $400, $ff0
-		
+
 		.word $009, $000, $242, $464, $696, $9d9, $fff, $bbb
 		.word $999, $444, $bf9, $b64, $ff0, $990, $440, $f00
-		
+
 		.word $09f, $200, $fff, $620, $940, $d60, $f90, $fd0
 		.word $69b, $69f, $9bf, $bdf, $040, $060, $4b0, $9f0
-		
+
 		.word $29d, $20b, $24d, $69f, $bdf, $dff, $fff, $dbf
 		.word $b9f, $96f, $9f0, $4b0, $200, $620, $d60, $fd0
-		
+
 		.word $000, $000, $fff, $eac, $97d, $18c, $6ad, $9ef
 		.word $5cb, $3c8, $ac5, $fc5, $fb5, $f85, $f64, $f54
 palette_end:
 
 ; Raster IRQ line numbers (equates are to make it easier to enter/tweak them)
-RASTER0 = 224
+RASTER0 = 221 ; ideal value for HW. For emu, it's 223.
 RASTER1 = 306
 RASTER2 = 310
 RASTER3 = 318
