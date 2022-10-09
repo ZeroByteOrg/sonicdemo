@@ -470,13 +470,22 @@ start:
 			sta line
 			stz line
 
-			; configure VERA display mode
-			lda #$40				; set resolution = 320x240
+			; configure VERA display mode / screen geometry
+			lda #2					      ; set DCSEL=1
+			sta VERA_ctrl				  ;
+			stz VERA_dc_hstart    ; no left border
+			stz VERA_dc_vsstart   ; no top border
+			lda #(640>>2)         ; no right border
+			sta VERA_dc_hstop
+			lda #(480>>1)         ; no bottom border
+			sta VERA_dc_vstop
+			stz VERA_ctrl         ; set DCSEL=0 for the other DC parameters.
+			; set resolution = 320x240 (HSCALE=1/2 and VSCALE=1/2 of normal)
+			lda #$40
 			sta VERA_dc_hscale
 			sta VERA_dc_vscale
 			lda VERA_dc_video
 			ora #$70				; Sprite,L1,L0 enabled, outmode = previously-set
-;			lda #$51				; Sprite,  ,L0 enabled, outmode = previously-set
 			sta VERA_dc_video
 
 			cli						; init complete. Enable IRQ and
